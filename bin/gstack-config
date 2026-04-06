@@ -1,111 +1,93 @@
 #!/usr/bin/env bash
-# gstack-config — get/set/list entries in ~/.gstack/config.yaml
+# gstack-config — read/write ~/.gstack/config.yaml
 #
 # Usage:
-#   gstack-config get <key>
-#   gstack-config set <key> <value>
-#   gstack-config list
+#   gstack-config get <key>          — read a config value
+#   gstack-config set <key> <value>  — write a config value
+#   gstack-config list               — show all config
 #
-# Config lives at ~/.gstack/config.yaml (YAML, one "key: value" per line).
+# Env overrides (for testing):
+#   GSTACK_STATE_DIR  — override ~/.gstack state directory
+set -euo pipefail
+
+STATE_DIR="${GSTACK_STATE_DIR:-$HOME/.gstack}"
+CONFIG_FILE="$STATE_DIR/config.yaml"
+
+# Annotated header for new config files. Written once on first `set`.
+CONFIG_HEADER='# gstack configuration — edit freely, changes take effect on next skill run.
+# Docs: https://github.com/garrytan/gstack
 #
-# Exit codes:
-#   0 — success (including get on missing key)
-#   2 — usage error
+# ─── Behavior ────────────────────────────────────────────────────────
+# proactive: true           # Auto-invoke skills when your request matches one.
+#                           # Set to false to only run skills you type explicitly.
+#
+# routing_declined: false   # Set to true to skip the CLAUDE.md routing injection
+#                           # prompt. Set back to false to be asked again.
+#
+# ─── Telemetry ───────────────────────────────────────────────────────
+# telemetry: anonymous      # off | anonymous | community
+#                           #   off       — no data sent, no local analytics
+#                           #   anonymous — counter only, no device ID
+#                           #   community — usage data + stable device ID
+#
+# ─── Updates ─────────────────────────────────────────────────────────
+# auto_upgrade: false       # true = silently upgrade on session start
+# update_check: true        # false = suppress version check notifications
+#
+# ─── Skill naming ────────────────────────────────────────────────────
+# skill_prefix: false       # true = namespace skills as /gstack-qa, /gstack-ship
+#                           # false = short names /qa, /ship
+#
+# ─── Advanced ────────────────────────────────────────────────────────
+# codex_reviews: enabled    # disabled = skip Codex adversarial reviews in /ship
+# gstack_contributor: false # true = file field reports when gstack misbehaves
+# skip_eng_review: false    # true = skip eng review gate in /ship (not recommended)
+#
+'
 
-CONFIG_DIR="${GSTACK_STATE_DIR:-${HOME}/.gstack}"
-CONFIG_FILE="${CONFIG_DIR}/config.yaml"
-
-# ── helpers ────────────────────────────────────────────────────────
-
-usage() {
-  echo "Usage: gstack-config {get|set|list} [args...]"
-}
-
-ensure_config_dir() {
-  if [ ! -d "$CONFIG_DIR" ]; then
-    mkdir -p "$CONFIG_DIR"
-  fi
-}
-
-# Read a key from the YAML file.
-# Echoes the last value for the key (stripped).  Prints nothing if the
-# key is not present.  The caller decides what exit code to use.
-yaml_get() {
-  local key="$1"
-  local file="$2"
-  if [ ! -f "$file" ]; then
-    return 0
-  fi
-  # Extract all lines for this key (any indentation), take the last one,
-  # strip the "key:" prefix and trim whitespace.
-  local value
-  value=$(grep -E "^[[:space:]]*${key}[[:space:]]*:" "$file" 2>/dev/null | tail -1)
-  if [ -z "$value" ]; then
-    return 0
-  fi
-  echo "$value" | sed 's/^[^:]*:[[:space:]]*//' | sed 's/[[:space:]]*$//'
-}
-
-# Write a key=value pair to the YAML file.
-# If the key already exists its line is replaced; otherwise the line is appended.
-yaml_set() {
-  local key="$1"
-  local value="$2"
-  local file="$3"
-
-  ensure_config_dir
-
-  if [ -f "$file" ]; then
-    # Does the key already exist (at any indentation level)?
-    if grep -qE "^[[:space:]]*${key}[[:space:]]*:" "$file" 2>/dev/null; then
-      # Replace in-place; capture indentation with a backref.
-      sed -i -E "s|^[[:space:]]*(${key}[[:space:]]*:).*|\1 ${value}|" "$file"
-      return 0
-    fi
-  fi
-  # Append new key
-  echo "${key}: ${value}" >> "$file"
-}
-
-# ── main ──────────────────────────────────────────────────────────
-
-cmd="${1:-}"
-case "$cmd" in
+case "${1:-}" in
   get)
-    key="${2:-}"
-    if [ -z "$key" ]; then
-      usage
+    KEY="${2:?Usage: gstack-config get <key>}"
+    # Validate key (alphanumeric + underscore only)
+    if ! printf '%s' "$KEY" | grep -qE '^[a-zA-Z0-9_]+$'; then
+      echo "Error: key must contain only alphanumeric characters and underscores" >&2
       exit 1
     fi
-    ensure_config_dir
-    value=$(yaml_get "$key" "$CONFIG_FILE")
-    # Exit 0 regardless of whether the key was found — print value if present.
-    echo "$value"
-    exit 0
+    grep -E "^${KEY}:" "$CONFIG_FILE" 2>/dev/null | tail -1 | awk '{print $2}' | tr -d '[:space:]' || true
     ;;
-
   set)
-    key="${2:-}"
-    value="${3:-}"
-    if [ -z "$key" ]; then
-      usage
+    KEY="${2:?Usage: gstack-config set <key> <value>}"
+    VALUE="${3:?Usage: gstack-config set <key> <value>}"
+    # Validate key (alphanumeric + underscore only)
+    if ! printf '%s' "$KEY" | grep -qE '^[a-zA-Z0-9_]+$'; then
+      echo "Error: key must contain only alphanumeric characters and underscores" >&2
       exit 1
     fi
-    yaml_set "$key" "$value" "$CONFIG_FILE"
-    exit 0
-    ;;
-
-  list)
-    ensure_config_dir
-    if [ ! -f "$CONFIG_FILE" ] || [ ! -s "$CONFIG_FILE" ]; then
-      exit 0
+    mkdir -p "$STATE_DIR"
+    # Write annotated header on first creation
+    if [ ! -f "$CONFIG_FILE" ]; then
+      printf '%s' "$CONFIG_HEADER" > "$CONFIG_FILE"
     fi
-    cat "$CONFIG_FILE"
-    exit 0
+    # Escape sed special chars in value and drop embedded newlines
+    ESC_VALUE="$(printf '%s' "$VALUE" | head -1 | sed 's/[&/\]/\\&/g')"
+    if grep -qE "^${KEY}:" "$CONFIG_FILE" 2>/dev/null; then
+      # Portable in-place edit (BSD sed uses -i '', GNU sed uses -i without arg)
+      _tmpfile="$(mktemp "${CONFIG_FILE}.XXXXXX")"
+      sed "/^${KEY}:/s/.*/${KEY}: ${ESC_VALUE}/" "$CONFIG_FILE" > "$_tmpfile" && mv "$_tmpfile" "$CONFIG_FILE"
+    else
+      echo "${KEY}: ${VALUE}" >> "$CONFIG_FILE"
+    fi
+    # Auto-relink skills when prefix setting changes (skip during setup to avoid recursive call)
+    if [ "$KEY" = "skill_prefix" ] && [ -z "${GSTACK_SETUP_RUNNING:-}" ]; then
+      GSTACK_RELINK="$(dirname "$0")/gstack-relink"
+      [ -x "$GSTACK_RELINK" ] && "$GSTACK_RELINK" || true
+    fi
     ;;
-
+  list)
+    cat "$CONFIG_FILE" 2>/dev/null || true
+    ;;
   *)
-    usage
+    echo "Usage: gstack-config {get|set|list} [key] [value]"
     exit 1
     ;;
 esac
