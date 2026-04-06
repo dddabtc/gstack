@@ -1,38 +1,111 @@
 #!/usr/bin/env bash
-# gstack-config — read/write ~/.gstack/config.yaml
+# gstack-config — get/set/list entries in ~/.gstack/config.yaml
 #
 # Usage:
-#   gstack-config get <key>          — read a config value
-#   gstack-config set <key> <value>  — write a config value
-#   gstack-config list               — show all config
+#   gstack-config get <key>
+#   gstack-config set <key> <value>
+#   gstack-config list
 #
-# Env overrides (for testing):
-#   GSTACK_STATE_DIR  — override ~/.gstack state directory
-set -euo pipefail
+# Config lives at ~/.gstack/config.yaml (YAML, one "key: value" per line).
+#
+# Exit codes:
+#   0 — success (including get on missing key)
+#   2 — usage error
 
-STATE_DIR="${GSTACK_STATE_DIR:-$HOME/.gstack}"
-CONFIG_FILE="$STATE_DIR/config.yaml"
+CONFIG_DIR="${GSTACK_STATE_DIR:-${HOME}/.gstack}"
+CONFIG_FILE="${CONFIG_DIR}/config.yaml"
 
-case "${1:-}" in
-  get)
-    KEY="${2:?Usage: gstack-config get <key>}"
-    grep -E "^${KEY}:" "$CONFIG_FILE" 2>/dev/null | tail -1 | awk '{print $2}' | tr -d '[:space:]' || true
-    ;;
-  set)
-    KEY="${2:?Usage: gstack-config set <key> <value>}"
-    VALUE="${3:?Usage: gstack-config set <key> <value>}"
-    mkdir -p "$STATE_DIR"
-    if grep -qE "^${KEY}:" "$CONFIG_FILE" 2>/dev/null; then
-      sed -i '' "s/^${KEY}:.*/${KEY}: ${VALUE}/" "$CONFIG_FILE"
-    else
-      echo "${KEY}: ${VALUE}" >> "$CONFIG_FILE"
+# ── helpers ────────────────────────────────────────────────────────
+
+usage() {
+  echo "Usage: gstack-config {get|set|list} [args...]"
+}
+
+ensure_config_dir() {
+  if [ ! -d "$CONFIG_DIR" ]; then
+    mkdir -p "$CONFIG_DIR"
+  fi
+}
+
+# Read a key from the YAML file.
+# Echoes the last value for the key (stripped).  Prints nothing if the
+# key is not present.  The caller decides what exit code to use.
+yaml_get() {
+  local key="$1"
+  local file="$2"
+  if [ ! -f "$file" ]; then
+    return 0
+  fi
+  # Extract all lines for this key (any indentation), take the last one,
+  # strip the "key:" prefix and trim whitespace.
+  local value
+  value=$(grep -E "^[[:space:]]*${key}[[:space:]]*:" "$file" 2>/dev/null | tail -1)
+  if [ -z "$value" ]; then
+    return 0
+  fi
+  echo "$value" | sed 's/^[^:]*:[[:space:]]*//' | sed 's/[[:space:]]*$//'
+}
+
+# Write a key=value pair to the YAML file.
+# If the key already exists its line is replaced; otherwise the line is appended.
+yaml_set() {
+  local key="$1"
+  local value="$2"
+  local file="$3"
+
+  ensure_config_dir
+
+  if [ -f "$file" ]; then
+    # Does the key already exist (at any indentation level)?
+    if grep -qE "^[[:space:]]*${key}[[:space:]]*:" "$file" 2>/dev/null; then
+      # Replace in-place; capture indentation with a backref.
+      sed -i -E "s|^[[:space:]]*(${key}[[:space:]]*:).*|\1 ${value}|" "$file"
+      return 0
     fi
+  fi
+  # Append new key
+  echo "${key}: ${value}" >> "$file"
+}
+
+# ── main ──────────────────────────────────────────────────────────
+
+cmd="${1:-}"
+case "$cmd" in
+  get)
+    key="${2:-}"
+    if [ -z "$key" ]; then
+      usage
+      exit 1
+    fi
+    ensure_config_dir
+    value=$(yaml_get "$key" "$CONFIG_FILE")
+    # Exit 0 regardless of whether the key was found — print value if present.
+    echo "$value"
+    exit 0
     ;;
+
+  set)
+    key="${2:-}"
+    value="${3:-}"
+    if [ -z "$key" ]; then
+      usage
+      exit 1
+    fi
+    yaml_set "$key" "$value" "$CONFIG_FILE"
+    exit 0
+    ;;
+
   list)
-    cat "$CONFIG_FILE" 2>/dev/null || true
+    ensure_config_dir
+    if [ ! -f "$CONFIG_FILE" ] || [ ! -s "$CONFIG_FILE" ]; then
+      exit 0
+    fi
+    cat "$CONFIG_FILE"
+    exit 0
     ;;
+
   *)
-    echo "Usage: gstack-config {get|set|list} [key] [value]"
+    usage
     exit 1
     ;;
 esac
