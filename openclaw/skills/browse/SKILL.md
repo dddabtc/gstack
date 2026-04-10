@@ -6,6 +6,14 @@ description: >
   check responsive layouts, test forms, and assert element states. Use when asked to
   "browse a site", "check this URL", "test this page", "take a screenshot", "dogfood",
   "verify deployment", or /browse. Based on gstack by Garry Tan, adapted for OpenClaw.
+metadata:
+  {
+    "openclaw":
+      {
+        "emoji": "🛠️",
+        "requires": { "bins": ["bash"] }
+      }
+  }
 ---
 
 # Browse: QA Testing & Dogfooding with OpenClaw Browser

@@ -5,6 +5,14 @@ description: >
   installation system, this skill explains how gstack skills are managed in
   OpenClaw. Use when asked to "upgrade gstack", "update gstack skills", or
   "get latest gstack version". Based on gstack by Garry Tan, adapted for OpenClaw.
+metadata:
+  {
+    "openclaw":
+      {
+        "emoji": "🛠️",
+        "requires": { "bins": ["bash"] }
+      }
+  }
 ---
 
 # /gstack-upgrade — Skill Management in OpenClaw

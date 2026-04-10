@@ -6,6 +6,14 @@ description: >
   "fixing" unrelated code, or when you want to scope changes to one module.
   Use when asked to "freeze", "restrict edits", "only edit this folder",
   or "lock down edits". Based on gstack by Garry Tan, adapted for OpenClaw.
+metadata:
+  {
+    "openclaw":
+      {
+        "emoji": "🛠️",
+        "requires": { "bins": ["bash"] }
+      }
+  }
 ---
 
 # /freeze — Restrict Edits to a Directory

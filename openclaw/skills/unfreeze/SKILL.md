@@ -5,6 +5,14 @@ description: >
   again. Use when you want to widen edit scope without ending the session.
   Use when asked to "unfreeze", "unlock edits", "remove freeze", or
   "allow all edits". Based on gstack by Garry Tan, adapted for OpenClaw.
+metadata:
+  {
+    "openclaw":
+      {
+        "emoji": "🛠️",
+        "requires": { "bins": ["bash"] }
+      }
+  }
 ---
 
 # /unfreeze — Clear Freeze Boundary

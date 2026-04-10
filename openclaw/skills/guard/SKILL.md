@@ -7,6 +7,14 @@ description: >
   when touching prod or debugging live systems. Use when asked to "guard mode",
   "full safety", "lock it down", or "maximum safety".
   Based on gstack by Garry Tan, adapted for OpenClaw.
+metadata:
+  {
+    "openclaw":
+      {
+        "emoji": "🛠️",
+        "requires": { "bins": ["bash"] }
+      }
+  }
 ---
 
 # /guard — Full Safety Mode

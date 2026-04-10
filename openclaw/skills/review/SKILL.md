@@ -6,6 +6,14 @@ description: >
   structural issues that tests don't catch. Use when asked to "review my PR", "review
   this branch", "pre-landing review", "code review", "paranoid review", or /review.
   Based on gstack by Garry Tan.
+metadata:
+  {
+    "openclaw":
+      {
+        "emoji": "🛠️",
+        "requires": { "bins": ["bash"] }
+      }
+  }
 ---
 
 # Pre-Landing PR Review

@@ -8,6 +8,14 @@ description: >
   Use when asked to "brainstorm this", "I have an idea", "help me think through
   this", "office hours", or "is this worth building".
   Based on gstack by Garry Tan, adapted for OpenClaw.
+metadata:
+  {
+    "openclaw":
+      {
+        "emoji": "🛠️",
+        "requires": { "bins": ["bash"] }
+      }
+  }
 ---
 
 # YC Office Hours

@@ -9,6 +9,14 @@ description: >
   Use when asked to "qa", "QA", "test this site", "find bugs", "test and fix",
   "fix what's broken", or /qa. For report-only mode, use /qa-only instead.
   Based on gstack by Garry Tan, adapted for OpenClaw.
+metadata:
+  {
+    "openclaw":
+      {
+        "emoji": "🛠️",
+        "requires": { "bins": ["bash"] }
+      }
+  }
 ---
 
 # /qa: Test → Fix → Verify

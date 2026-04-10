@@ -6,6 +6,14 @@ description: >
   CHANGELOG voice, cleans up TODOS, and optionally bumps VERSION. Use when asked to
   "update docs", "document release", "update documentation", "sync docs with code",
   "post-ship docs", or /document-release. Based on gstack by Garry Tan, adapted for OpenClaw.
+metadata:
+  {
+    "openclaw":
+      {
+        "emoji": "🛠️",
+        "requires": { "bins": ["bash"] }
+      }
+  }
 ---
 
 # Document Release: Post-Ship Documentation Update

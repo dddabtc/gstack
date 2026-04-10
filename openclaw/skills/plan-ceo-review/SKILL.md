@@ -7,6 +7,14 @@ description: >
   (strip to essentials). Use when asked to "plan review as CEO", "founder review",
   "product review", "10-star review", "rethink this", "is this the right thing to build",
   or /plan-ceo-review. Based on gstack by Garry Tan.
+metadata:
+  {
+    "openclaw":
+      {
+        "emoji": "🛠️",
+        "requires": { "bins": ["bash"] }
+      }
+  }
 ---
 
 # Mega Plan Review Mode — CEO/Founder Brain

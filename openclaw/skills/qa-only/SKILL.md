@@ -6,6 +6,14 @@ description: >
   but never fixes anything. Use when asked to "just report bugs", "qa report only",
   "test but don't fix", "qa-only", or /qa-only. For the full test-fix-verify loop,
   use /qa instead. Based on gstack by Garry Tan, adapted for OpenClaw.
+metadata:
+  {
+    "openclaw":
+      {
+        "emoji": "🛠️",
+        "requires": { "bins": ["bash"] }
+      }
+  }
 ---
 
 # /qa-only: Report-Only QA Testing

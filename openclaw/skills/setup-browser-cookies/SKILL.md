@@ -6,6 +6,14 @@ description: >
   /browse when you need to test pages behind authentication. Use when asked to
   "setup cookies", "import cookies", "setup browser cookies", "login for testing",
   or /setup-browser-cookies. Based on gstack by Garry Tan, adapted for OpenClaw.
+metadata:
+  {
+    "openclaw":
+      {
+        "emoji": "🛠️",
+        "requires": { "bins": ["bash"] }
+      }
+  }
 ---
 
 # Setup Browser Cookies

@@ -6,6 +6,14 @@ description: >
   through issues interactively with opinionated recommendations. Use when asked to
   "engineering review", "tech review", "architecture review", "eng plan review",
   "lock in the plan", or /plan-eng-review. Based on gstack by Garry Tan.
+metadata:
+  {
+    "openclaw":
+      {
+        "emoji": "🛠️",
+        "requires": { "bins": ["bash"] }
+      }
+  }
 ---
 
 # Plan Review Mode — Engineering Manager Brain

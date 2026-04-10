@@ -6,6 +6,14 @@ description: >
   creates a PR. Use when asked to "ship this", "ship it", "create a PR", "land this
   branch", "push and PR", or /ship. For a ready branch, not for deciding what to build.
   Based on gstack by Garry Tan.
+metadata:
+  {
+    "openclaw":
+      {
+        "emoji": "🛠️",
+        "requires": { "bins": ["bash"] }
+      }
+  }
 ---
 
 # Ship: Fully Automated Ship Workflow

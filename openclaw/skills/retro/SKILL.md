@@ -7,6 +7,14 @@ description: >
   to "retro", "retrospective", "weekly review", "what did we ship", "engineering retro",
   or /retro. Supports time windows: /retro 24h, /retro 14d, /retro compare.
   Based on gstack by Garry Tan, adapted for OpenClaw.
+metadata:
+  {
+    "openclaw":
+      {
+        "emoji": "🛠️",
+        "requires": { "bins": ["bash"] }
+      }
+  }
 ---
 
 # /retro — Weekly Engineering Retrospective
